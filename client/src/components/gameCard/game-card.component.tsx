@@ -8,7 +8,9 @@ import CardMedia from '@material-ui/core/CardMedia';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 
-import './game-card.style.css';
+import CardInfo from "../../models/card-info.model";
+import CardAction from "../../models/card-action.model";
+import ActionTextPrinterService from "../../services/action-text-printer.service";
 
 const useStyles = makeStyles({
     card: {
@@ -19,9 +21,22 @@ const useStyles = makeStyles({
     },
 });
 
-export default function GameCard() {
-    const classes = useStyles();
+// TODO understand why typing is not working
+// function ActionList(props: {actions: CardAction[]}) {
+function ActionList(props) {
+    return props.actions.map(action =>
+        <ListAction key={action.actionIndex} action={action}/>
+    );
+}
 
+function ListAction(props: {action: CardAction}) {
+    return <Typography variant="body1" color="textSecondary" component="p">{ActionTextPrinterService.getActionText(props.action)}</Typography>;
+}
+
+export default function GameCard(props: {info: CardInfo}) {
+    // TODO find out how to use hooks with ts in a proper way
+    // @ts-ignore
+    const classes = useStyles();
     return (
         <Card className={classes.card}>
             <CardActionArea>
@@ -31,16 +46,12 @@ export default function GameCard() {
                 />
                 <CardContent>
                     <Typography gutterBottom variant="h5" component="h2">
-                        Cavalry
+                        {props.info.getFullName()}
                     </Typography>
+                    <ActionList actions={props.info.actions} />
+                    <hr/>
                     <Typography variant="body2" color="textSecondary" component="p">
-                        Draw 2 cards.
-                    </Typography>
-                    <Typography variant="body2" color="textSecondary" component="p">
-                        Deal 5 damage to an enemy.
-                    </Typography>
-                    <Typography variant="body2" color="textSecondary" component="p">
-                        Deal 3 damage to itself.
+                        {props.info.notation}
                     </Typography>
                 </CardContent>
             </CardActionArea>
