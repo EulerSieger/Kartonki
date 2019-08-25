@@ -26,6 +26,7 @@ export class Generator {
     private readonly notations: string[] = CardNotationsResource;
     private readonly actions: CardAction[] = CardActionsResource;
     private readonly actionsPowerAnchor: number = 12;
+    private readonly MAX_NEGATIVE_ACTIONS = 3;
     private cardId: number = 0;
     /**
      * Generates CardInfo object, skeleton of <GameCard />.
@@ -72,8 +73,7 @@ export class Generator {
 
     /**
      * Generates actions for CardInfo.
-     * Keeps generating actions until actionPower would be
-     * higher than this.actionsPowerAnchor
+     * Keeps generating actions until actionPower would be higher than this.actionsPowerAnchor.
      * @returns CardAction[]
      */
     generateActions = () => {
@@ -81,30 +81,45 @@ export class Generator {
         let actionsPower = 0;
         let action: CardAction;
         let actionIndex = 1;
+        let negativeActions = 0;
         while (actionsPower < this.actionsPowerAnchor) {
-            action = this.generateAction();
+            action = this.generateAction(negativeActions <= this.MAX_NEGATIVE_ACTIONS);
             action.actionIndex = actionIndex++;
             actionsPower += this.getActionPower(action);
+            negativeActions += this.getActionPower(action) < 0 ? 1 : 0;
             actions.push(action);
         }
         return actions;
     }
 
     /**
-     * Generates CardAction, randomizing it's parameters.
+     * Generates CardAction, randomizing it's parameters' values.
+     * @param negativesAllowed - flag if it's ok to create negative effect cards
      * @returns CardAction
      */
-    generateAction = () => {
+    // TODO optimize CardAction structure for easier maintenance & card generation
+    generateAction = (negativesAllowed: boolean = true) => {
         let action: CardAction = this.getRandomArrayElement(this.actions);
         action.params.forEach((param) => {
             if (Array.isArray(param.ranges)) {
-                param.value = this.getRandomArrayElement(param.ranges);
+                if (negativesAllowed) {
+                    param.value = this.getRandomArrayElement(param.ranges);
+                } else { // need to pick only positive actions
+                    let positiveRange = param.ranges.map(val => param.power[param.ranges.indexOf(val)] > 0);
+                    param.value = this.getRandomArrayElement(positiveRange);
+                }
             } else {
                 param.value = this.generateNumber(param.ranges.MIN, param.ranges.MAX);
             }
         });
         return action;
     }
+
+    /**
+     * Merges actions of a same type to one action.
+     */
+    // TODO write that lmao
+    squashActions = () => {}
 
     /**
      * Calculates power of a CardAction

@@ -5,7 +5,7 @@ export const CardNotationsResource: string[] = [
     'Sponsored by SpeedWagons fund.',
     'Aggro is not homo.. hm, actually...',
     'Once man bought a hat and it fit well.',
-    'This card is cursed, you\'d better to get rid of it ASAP.',
+    'This card is cursed.',
     'This card is blessed by Azura.',
-    'This card was printed with no idea of how to balance cards.'
+    'This card was created with no idea how to balance cards.'
 ];
