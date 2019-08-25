@@ -9,6 +9,8 @@ import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 
 import CardInfo from "../../models/card-info.model";
+import CardAction from "../../models/card-action.model";
+import ActionTextPrinterService from "../../services/action-text-printer.service";
 
 const useStyles = makeStyles({
     card: {
@@ -19,23 +21,22 @@ const useStyles = makeStyles({
     },
 });
 
+// TODO understand why typing is not working
+// function ActionList(props: {actions: CardAction[]}) {
 function ActionList(props) {
-    const actions = props.actions;
-    const listActions = actions.map(action =>
-        <ListAction key={action.actionIndex} action={action} />
+    return props.actions.map(action =>
+        <ListAction key={action.actionIndex} action={action}/>
     );
-    return ({listActions});
 }
 
-function ListAction(props) {
-    return <Typography variant="body1" color="textSecondary" component="p">{props.action.textFiller(props.action)}</Typography>;
+function ListAction(props: {action: CardAction}) {
+    return <Typography variant="body1" color="textSecondary" component="p">{ActionTextPrinterService.getActionText(props.action)}</Typography>;
 }
 
 export default function GameCard(props: {info: CardInfo}) {
+    // TODO find out how to use hooks with ts in a proper way
     // @ts-ignore
     const classes = useStyles();
-
-    const actions = props.info.actions;
     return (
         <Card className={classes.card}>
             <CardActionArea>
@@ -47,7 +48,7 @@ export default function GameCard(props: {info: CardInfo}) {
                     <Typography gutterBottom variant="h5" component="h2">
                         {props.info.getFullName()}
                     </Typography>
-                    <ActionList actions={actions}/>
+                    <ActionList actions={props.info.actions} />
                     <hr/>
                     <Typography variant="body2" color="textSecondary" component="p">
                         {props.info.notation}

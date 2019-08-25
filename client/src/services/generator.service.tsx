@@ -25,7 +25,7 @@ export class Generator {
     private readonly prefixes: string[] = CardPrefixesResource;
     private readonly notations: string[] = CardNotationsResource;
     private readonly actions: CardAction[] = CardActionsResource;
-    private readonly actionsWeightAnchor: number = 12;
+    private readonly actionsPowerAnchor: number = 12;
     private cardId: number = 0;
     /**
      * Generates CardInfo object, skeleton of <GameCard />.
@@ -58,37 +58,43 @@ export class Generator {
 
     /**
      * Generates random array element, optionally can set a chance of empty roll
+     * Note: if array consists of objects, gets a COPY of it
      * @array          array to pick random element from
      * @emptyChance    chance of null, between 0 & 1
      * @returns        array element || null
      */
-    getRandomArrayElement = (array: any[], emptyChance: number = -1) => Math.random() > emptyChance ? array[this.generateNumber(0, array.length)] : null;
+    getRandomArrayElement = (array: any[], emptyChance: number = -42) =>
+        Math.random() > emptyChance ? // if missed chance return null
+            array[0] instanceof Object ? // if arrays consists from objects, create a copy
+                JSON.parse(JSON.stringify(array[this.generateNumber(0, array.length)]))
+                : array[this.generateNumber(0, array.length)] // else just return an immutable element
+            : null
 
     /**
      * Generates actions for CardInfo.
-     * Keeps generating actions until actionWeight would be 
-     * higher than this.actionsWeightAnchor
+     * Keeps generating actions until actionPower would be
+     * higher than this.actionsPowerAnchor
      * @returns CardAction[]
      */
     generateActions = () => {
         let actions: CardAction[] = [];
-        let actionsWeight = 0;
+        let actionsPower = 0;
         let action: CardAction;
-        let actionIndex = 0;
-        while (actionsWeight < this.actionsWeightAnchor) {
-            action = this.assembleAction();
+        let actionIndex = 1;
+        while (actionsPower < this.actionsPowerAnchor) {
+            action = this.generateAction();
             action.actionIndex = actionIndex++;
-            actionsWeight += this.getActionWeight(action);
+            actionsPower += this.getActionPower(action);
             actions.push(action);
         }
         return actions;
     }
 
     /**
-     * Assembles CardAction, randomizing it's parameters.
+     * Generates CardAction, randomizing it's parameters.
      * @returns CardAction
      */
-    assembleAction = () => {
+    generateAction = () => {
         let action: CardAction = this.getRandomArrayElement(this.actions);
         action.params.forEach((param) => {
             if (Array.isArray(param.ranges)) {
@@ -101,26 +107,25 @@ export class Generator {
     }
 
     /**
-     * Calculates weight of a CardAction
+     * Calculates power of a CardAction
      * @param   action
-     * @returns number weight
+     * @returns number power
      */
-    getActionWeight = (action: CardAction) => {
-        let weight = 0;
-        weight += action.baseWeight;
+    getActionPower = (action: CardAction) => {
+        let power = action.basePower;
         action.params.forEach(param => {
-            if (param.weight !== null) {
-                if (Array.isArray(param.weight)) { // is polarized action
-                    weight *= param.weight[param.ranges.indexOf(param.value)];
+            if (param.power !== null) {
+                if (Array.isArray(param.power)) { // is polarized action
+                    power *= param.power[param.ranges.indexOf(param.value)];
                 } else {
-                    weight += param.value * param.weight;
+                    power += param.value * param.power;
                 }
             }
         });
-        return weight;
+        return power;
     }
 
     generateImage = () => {
         // complex implementation
-    };
+    }
 };
